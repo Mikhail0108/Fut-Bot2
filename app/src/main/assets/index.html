@@ -1,0 +1,151 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<style>
+:root{--main:#3bb4ff;--dark:#1d8fdc;--blue:#0a6fd6}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{margin:0;height:100%;font-family:Roboto,Arial,sans-serif;background:#fff}
+.bar{height:52px;background:var(--main);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:24px;font-weight:700;position:relative}
+.bar button{background:none;border:0;color:#fff;font-size:28px;width:40px}
+.bar img{height:40px;background:#fff;border-radius:10px;padding:2px}
+.view{display:none;height:calc(100% - 52px);overflow:auto;text-align:center;padding:24px 20px}
+.view.on{display:block}
+.btn{display:block;width:100%;max-width:320px;margin:14px auto;padding:16px;border:0;border-radius:12px;color:#fff;font-size:20px;font-weight:700;background:var(--main);box-shadow:0 4px 8px #0003}
+.btn.blue{background:var(--blue)}
+.status{max-width:320px;margin:14px auto;padding:14px;background:#eee;border-radius:8px;text-align:left;color:#111}
+h1{font-size:28px;margin:10px 0 18px}
+#home.on{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.row{display:flex;justify-content:space-between;align-items:center;padding:16px;text-align:left;border-bottom:1px solid #e3f2fd}
+.row a{color:var(--dark);font-size:14px}
+#devs{background:#f6fbff;padding:0}
+#fab{position:fixed;right:16px;bottom:16px;width:50px;height:50px;border-radius:14px;border:0;background:var(--main);color:#fff;font-size:24px;box-shadow:0 4px 8px #0004}
+#menu{display:none;position:absolute;right:8px;top:48px;background:#fff;color:#111;border-radius:8px;box-shadow:0 4px 12px #0004;z-index:9;font-size:16px;font-weight:400}
+#menu div{padding:14px 20px}
+#cfg{text-align:left}
+#cfg label{display:block;margin:12px 0 4px;font-weight:700;font-size:14px}
+#cfg input[type=text]{width:100%;padding:12px;border:1px solid #bbb;border-radius:8px;font-size:18px;user-select:text}
+#cfg p{font-size:13px;color:#555;margin:4px 0}
+#ctl{position:relative;padding:0;overflow:hidden}
+.pill{position:absolute;top:2%;left:50%;transform:translateX(-50%);background:#666;color:#fff;border-radius:16px;padding:1.5vh 4vw;font-size:3.2vh;display:flex;gap:2vw;align-items:center}
+.pill svg{height:3.6vh}
+.dot{width:3vh;height:3vh;border-radius:50%;background:#e33}.dot.ok{background:#1db954}
+.cb{position:absolute;border-radius:50%;background:#6b6b6b;border:0;display:flex;align-items:center;justify-content:center;box-shadow:0 1vh 2vh #0004;touch-action:none;padding:0}
+.cb.on{background:var(--main)}
+.cb svg{width:58%;height:58%;pointer-events:none}
+#up{left:8%;top:14%;width:25vh;height:25vh}
+#dn{left:8%;top:44%;width:25vh;height:25vh}
+#st{left:calc(50% - 15vh);top:28%;width:30vh;height:30vh}
+#lf{right:21%;top:28%;width:28vh;height:28vh}
+#rt{right:5%;top:28%;width:28vh;height:28vh}
+#spd{position:absolute;left:0;right:0;bottom:2%;font-weight:700}
+#spd div{font-size:5vh}
+#spd b{font-size:4.2vh;display:block}
+#spd input{width:80%;margin-top:1vh}
+</style></head><body>
+<div class="bar"><button id="back" onclick="goBack()">←</button><span id="title">FUT-BOT</span><img id="mini" src="robot.png" style="display:none"><button onclick="toggleMenu()">☰</button>
+<div id="menu"><div onclick="Android.disconnect();onBt(false,'No conectado');hideMenu()">Desconectar</div><div onclick="openCfg()">Comandos</div><div onclick="help()">Ayuda</div><div onclick="Android.exit()">Salir</div></div></div>
+
+<div class="view on" id="home"><img src="robot.png" width="170"><button class="btn" style="margin-top:40px" onclick="go('conn')">¡INICIA LA AVENTURA!</button><button id="fab" onclick="help()">?</button></div>
+
+<div class="view" id="conn"><h1>conecta tu dispositivo</h1><img src="robot.png" width="130">
+<div class="status" id="status">🔵 &nbsp;No conectado</div>
+<button class="btn blue" onclick="showDevs()">Ver dispositivos</button>
+<button class="btn" onclick="openFutbot()">FUTBOT ⚽</button><div style="font-size:70px">🥅</div></div>
+
+<div class="view" id="devs"></div>
+
+<div class="view" id="fut"><h1 style="font-size:44px;margin-top:20px">FUTBOT</h1><img src="logo.png" width="210" style="border-radius:30px"><button class="btn" style="margin-top:30px" onclick="go('ctl')">Control</button><div style="font-size:70px">🎮</div></div>
+
+<div class="view" id="cfg"><h1>Comandos del robot</h1>
+<p>Escribe lo que tu código del ESP32 espera recibir para cada acción.</p>
+<label>Adelante</label><input type="text" id="c_up">
+<label>Atrás</label><input type="text" id="c_down">
+<label>Izquierda</label><input type="text" id="c_left">
+<label>Derecha</label><input type="text" id="c_right">
+<label>Adelante + Izquierda</label><input type="text" id="c_ul">
+<label>Adelante + Derecha</label><input type="text" id="c_ur">
+<label>Atrás + Izquierda</label><input type="text" id="c_dl">
+<label>Atrás + Derecha</label><input type="text" id="c_dr">
+<label>Parar / pausa</label><input type="text" id="c_stop">
+<label>Terminador (al final de cada comando)</label><input type="text" id="c_end"><p>Escribe \n si tu código lee líneas.</p>
+<label>Velocidad (usa {v} para el valor 0-100)</label><input type="text" id="c_speed"><p>Déjalo vacío si tu código no tiene control de velocidad.</p>
+<label><input type="checkbox" id="c_rel"> Enviar "parar" al soltar el botón</label>
+<button class="btn" onclick="saveCfg()">Guardar</button></div>
+
+<div class="view" id="ctl">
+<div class="pill"><svg viewBox="0 0 24 24"><path d="M7 7l10 10-5 5V2l5 5L7 17" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="cs">Desconectado</span><i class="dot" id="dot"></i></div>
+<button class="cb" id="up" data-c="up"></button><button class="cb" id="dn" data-c="down"></button>
+<button class="cb" id="st" data-c="stop"></button>
+<button class="cb" id="lf" data-c="left"></button><button class="cb" id="rt" data-c="right"></button>
+<div id="spd"><div>Velocidad</div><b id="sv">100%</b><input type="range" id="sl" min="0" max="100" value="100"></div></div>
+
+<script>
+const DEF={up:'U',down:'D',left:'L',right:'R',ul:'Y',ur:'I',dl:'M',dr:'N',stop:'S',end:'\\n',speed:'CG{v}',rel:true};
+let cfg=Object.assign({},DEF);
+try{Object.assign(cfg,JSON.parse(localStorage.getItem('cfg3')||'{}'))}catch(e){}
+const unesc=s=>s.replace(/\\n/g,'\n').replace(/\\r/g,'\r');
+function tx(s){if(s!=='')Android.send(unesc(s+cfg.end))}
+function txRep(s){if(s!=='')Android.sendRep(unesc(s+cfg.end))}
+const arrow=r=>`<svg viewBox="0 0 24 24" style="transform:rotate(${r}deg)"><path d="M12 20V5M5 12l7-7 7 7" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+up.innerHTML=arrow(0);dn.innerHTML=arrow(180);lf.innerHTML=arrow(-90);rt.innerHTML=arrow(90);
+st.innerHTML='<svg viewBox="0 0 24 24"><rect x="5" y="3.5" width="5" height="17" rx="2.2" fill="#fff"/><rect x="14" y="3.5" width="5" height="17" rx="2.2" fill="#fff"/></svg>';
+
+let stack=['home'],connected=false;
+const titles={home:'FUT-BOT',conn:'FUT-BOT',devs:'Dispositivos Bluetooth',cfg:'Comandos',fut:'',ctl:''};
+function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));document.getElementById(id).classList.add('on');
+ document.getElementById('back').style.visibility=id=='home'?'hidden':'visible';
+ const mini=(id=='fut'||id=='ctl');
+ document.getElementById('title').textContent=titles[id];
+ document.getElementById('mini').style.display=mini?'block':'none';
+ document.getElementById('title').style.display=mini?'none':'block';
+ Android.landscape(id=='ctl');hideMenu()}
+function go(id){stack.push(id);show(id)}
+function goBack(){if(stack.length>1){if(stack.pop()=='ctl')releaseAll();show(stack[stack.length-1])}else Android.exit()}
+function toast(t){const d=document.createElement('div');d.textContent=t;d.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 18px;border-radius:20px;z-index:99';document.body.appendChild(d);setTimeout(()=>d.remove(),2500)}
+function showDevs(){const l=JSON.parse(Android.devices());const el=document.getElementById('devs');
+ el.innerHTML=l.length?'':'<p style="padding:20px">No hay dispositivos vinculados. Vincula tu ESP32 primero en Ajustes → Bluetooth.</p>';
+ l.forEach(d=>{const r=document.createElement('div');r.className='row';r.innerHTML='<span></span><a>Conectar</a>';r.firstChild.textContent=d.name;
+  r.onclick=()=>{toast('Conectando…');Android.connect(d.address,d.name);goBack()};el.appendChild(r)});go('devs')}
+function onBt(ok,msg){connected=ok;if(!ok)releaseAll(true);document.getElementById('status').innerHTML='🔵 &nbsp;'+(ok?'Conectado a '+msg:(msg||'No conectado'));
+ document.getElementById('cs').textContent=ok?'Conectado':'Desconectado';document.getElementById('dot').classList.toggle('ok',ok);toast(ok?'Conectado':msg)}
+function openFutbot(){connected?go('fut'):toast('Primero conecta tu dispositivo')}
+function toggleMenu(){const m=document.getElementById('menu');m.style.display=m.style.display=='block'?'none':'block'}
+function hideMenu(){document.getElementById('menu').style.display='none'}
+function help(){hideMenu();alert('1. Vincula tu ESP32 en Ajustes → Bluetooth.\n2. Pulsa "Ver dispositivos" y elige tu robot.\n3. Pulsa FUTBOT → Control.\n4. Mantén pulsadas las flechas para mover el carrito.\n5. Si no responde, revisa ☰ → Comandos.')}
+const F=['up','down','left','right','ul','ur','dl','dr','stop','end','speed'];
+function openCfg(){F.forEach(k=>document.getElementById('c_'+k).value=cfg[k]);document.getElementById('c_rel').checked=cfg.rel;go('cfg')}
+function saveCfg(){F.forEach(k=>cfg[k]=document.getElementById('c_'+k).value);cfg.rel=document.getElementById('c_rel').checked;
+ try{localStorage.setItem('cfg3',JSON.stringify(cfg))}catch(e){}toast('Guardado');goBack()}
+
+/* ===== Control: respuesta inmediata, reenvío cada 100 ms y parada confiable ===== */
+const HOLD_MS=100, MIN_PRESS=180;          // reenvío / duración mínima de un toque
+let rep=null,last=null;const held=new Set(),tmr={},t0={};
+function stopRep(){if(rep){clearInterval(rep);rep=null}}
+function cur(){
+ const u=held.has('up')&&!held.has('down'),d=held.has('down')&&!held.has('up'),
+       l=held.has('left')&&!held.has('right'),r=held.has('right')&&!held.has('left');
+ if(u&&l)return cfg.ul; if(u&&r)return cfg.ur; if(d&&l)return cfg.dl; if(d&&r)return cfg.dr;
+ if(u)return cfg.up; if(d)return cfg.down; if(l)return cfg.left; if(r)return cfg.right; return null}
+function paint(){['up','down','left','right'].forEach(k=>document.querySelector('[data-c='+k+']').classList.toggle('on',held.has(k)))}
+function update(){
+ stopRep();paint();const c=cur();
+ if(c===null){ if(last!==null&&cfg.rel){tx(cfg.stop);setTimeout(()=>{if(!held.size)tx(cfg.stop)},60)} last=null;return}
+ last=c;tx(c);rep=setInterval(()=>{const x=cur();if(x!==null)txRep(x)},HOLD_MS)}
+function releaseAll(silent){Object.values(tmr).forEach(clearTimeout);held.clear();stopRep();paint();
+ if(!silent){tx(cfg.stop)}last=null}
+document.querySelectorAll('.cb').forEach(b=>{const c=b.dataset.c;
+ if(c=='stop'){b.addEventListener('pointerdown',e=>{e.preventDefault();releaseAll()});return}
+ b.addEventListener('pointerdown',e=>{e.preventDefault();try{b.setPointerCapture(e.pointerId)}catch(x){}
+  clearTimeout(tmr[c]);t0[c]=performance.now();held.add(c);update()});
+ const rel=()=>{const dt=performance.now()-(t0[c]||0);clearTimeout(tmr[c]);
+  const fin=()=>{held.delete(c);update()};
+  dt<MIN_PRESS?tmr[c]=setTimeout(fin,MIN_PRESS-dt):fin()};
+ ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>b.addEventListener(ev,rel))});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseAll()});
+window.addEventListener('blur',()=>releaseAll());
+
+const sl=document.getElementById('sl');
+sl.oninput=e=>{document.getElementById('sv').textContent=e.target.value+'%'};
+sl.onchange=e=>{if(cfg.speed!=='')tx(cfg.speed.replace('{v}',e.target.value))};
+document.addEventListener('contextmenu',e=>e.preventDefault());
+show('home');
+</script></body></html>
