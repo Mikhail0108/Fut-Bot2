@@ -79,7 +79,7 @@ h1{font-size:28px;margin:10px 0 18px}
 <div id="spd"><div>Velocidad</div><b id="sv">100%</b><input type="range" id="sl" min="0" max="100" value="100"></div></div>
 
 <script>
-const DEF={up:'U',down:'D',left:'L',right:'R',ul:'Y',ur:'I',dl:'M',dr:'N',stop:'S',end:'\\n',speed:'CG{v}',rel:true};
+const DEF={up:'U',down:'D',left:'R',right:'L',ul:'Y',ur:'I',dl:'M',dr:'N',stop:'S',end:'\\n',speed:'CG{v}',rel:true};
 let cfg=Object.assign({},DEF);
 try{Object.assign(cfg,JSON.parse(localStorage.getItem('cfg3')||'{}'))}catch(e){}
 const unesc=s=>s.replace(/\\n/g,'\n').replace(/\\r/g,'\r');
@@ -117,7 +117,7 @@ function saveCfg(){F.forEach(k=>cfg[k]=document.getElementById('c_'+k).value);cf
  try{localStorage.setItem('cfg3',JSON.stringify(cfg))}catch(e){}toast('Guardado');goBack()}
 
 /* ===== Control: respuesta inmediata, reenvío cada 100 ms y parada confiable ===== */
-const HOLD_MS=100, MIN_PRESS=180;          // reenvío / duración mínima de un toque
+const HOLD_MS=70, MIN_PRESS=120;          // reenvío / duración mínima de un toque
 let rep=null,last=null;const held=new Set(),tmr={},t0={};
 function stopRep(){if(rep){clearInterval(rep);rep=null}}
 function cur(){
@@ -142,6 +142,7 @@ document.querySelectorAll('.cb').forEach(b=>{const c=b.dataset.c;
  ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>b.addEventListener(ev,rel))});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseAll()});
 window.addEventListener('blur',()=>releaseAll());
+ setInterval(()=>{if(document.getElementById('ctl').classList.contains('on')&&connected&&!held.size)Android.sendRep('\n')},150);
 
 const sl=document.getElementById('sl');
 sl.oninput=e=>{document.getElementById('sv').textContent=e.target.value+'%'};
